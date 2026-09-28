@@ -1,0 +1,123 @@
+.list-head {
+  margin-bottom: 1.5rem;
+}
+h1 {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 700;
+}
+.lede {
+  margin: 0.4rem 0 0;
+  color: var(--ink-soft);
+  max-width: 60ch;
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font-weight: 500;
+  cursor: pointer;
+}
+.chip:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.chip-active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+.chip-count {
+  font-size: 0.8125rem;
+  opacity: 0.75;
+}
+.skeleton-row {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid var(--line);
+}
+.skeleton-row:last-child {
+  border-bottom: 0;
+}
+.empty {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+.empty h2 {
+  font-size: 1.125rem;
+}
+.empty p {
+  color: var(--ink-soft);
+  margin: 0.4rem 0 1rem;
+}
+.notice-error p {
+  margin: 0 0 0.75rem;
+}
+.table-wrap {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 46rem;
+}
+th,
+td {
+  text-align: left;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+th {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: var(--surface);
+}
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+tbody tr:hover {
+  background: #fafbfd;
+}
+.num {
+  text-align: right;
+  white-space: nowrap;
+}
+.up {
+  color: var(--crimson);
+}
+.down {
+  color: var(--teal);
+}
+.row-link {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+}
+.row-title {
+  font-weight: 600;
+  color: var(--ink);
+}
+.row-link:hover .row-title {
+  text-decoration: underline;
+}
+.row-id {
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+}
+
+.nowrap {
+  white-space: nowrap;
+}

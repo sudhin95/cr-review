@@ -1,0 +1,93 @@
+<section class="list" aria-labelledby="list-title">
+  <div class="list-head">
+    <div>
+      <h1 id="list-title">Change requests</h1>
+      <p class="lede">Review proposed changes to purchase orders before they reach the supplier.</p>
+    </div>
+  </div>
+
+  <div class="filters" role="group" aria-label="Filter by status">
+    <button
+      *ngFor="let option of filterOptions"
+      type="button"
+      class="chip"
+      [class.chip-active]="statusFilter === option"
+      [attr.aria-pressed]="statusFilter === option"
+      [attr.data-testid]="'filter-' + option"
+      [disabled]="state.kind !== 'loaded'"
+      (click)="setFilter(option)"
+    >
+      {{ labelFor(option) }}
+      <span class="chip-count" *ngIf="state.kind === 'loaded'">{{ countFor(option) }}</span>
+    </button>
+  </div>
+
+  <ng-container [ngSwitch]="state.kind">
+    <div *ngSwitchCase="'loading'" class="panel" data-testid="list-loading" aria-busy="true">
+      <p class="visually-hidden" role="status">Loading change requests</p>
+      <div class="skeleton-row" *ngFor="let row of skeletonRows">
+        <span class="skeleton" style="width: 5rem"></span>
+        <span class="skeleton" style="width: 55%"></span>
+        <span class="skeleton" style="width: 6rem"></span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'error'" class="notice notice-error" role="alert" data-testid="list-error">
+      <p>{{ state.kind === 'error' ? state.message : '' }}</p>
+      <button type="button" class="btn" (click)="load()" data-testid="list-retry">Try again</button>
+    </div>
+
+    <ng-container *ngSwitchCase="'loaded'">
+      <div *ngIf="!hasAnyRows" class="panel empty" data-testid="list-empty">
+        <h2>No change requests yet</h2>
+        <p>When a requester proposes a change to a purchase order, it will appear here.</p>
+      </div>
+
+      <div
+        *ngIf="hasAnyRows && visibleRows.length === 0"
+        class="panel empty"
+        data-testid="list-filter-empty"
+      >
+        <h2>No {{ labelFor(statusFilter).toLowerCase() }} change requests</h2>
+        <p>Nothing matches this status right now.</p>
+        <button type="button" class="btn" (click)="setFilter('ALL')" data-testid="clear-filter">
+          Show all change requests
+        </button>
+      </div>
+
+      <div *ngIf="visibleRows.length > 0" class="panel table-wrap">
+        <table data-testid="cr-table">
+          <caption class="visually-hidden">
+            {{
+              labelFor(statusFilter)
+            }}
+            change requests
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Request</th>
+              <th scope="col">Last updated</th>
+              <th scope="col" class="num">Change in total</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of visibleRows; trackBy: trackById" data-testid="cr-row">
+              <td>
+                <a [routerLink]="['/change-requests', row.id]" class="row-link">
+                  <span class="row-title">{{ row.title }}</span>
+                  <span class="row-id">{{ row.id }}</span>
+                </a>
+              </td>
+              <td class="nowrap">{{ row.updatedAt | date: 'd MMM y' }}</td>
+              <td class="num" [class.up]="row.delta > 0" [class.down]="row.delta < 0">
+                {{ row.delta | money: row.currency : true }}
+              </td>
+              <td><app-status-badge [status]="row.status" /></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+  </ng-container>
+</section>

@@ -1,0 +1,161 @@
+<a routerLink="/change-requests" class="back">Back to change requests</a>
+
+<ng-container [ngSwitch]="state.kind">
+  <div *ngSwitchCase="'loading'" class="loading" data-testid="detail-loading" aria-busy="true">
+    <span class="spinner" aria-hidden="true"></span>
+    <p role="status">Loading change request</p>
+  </div>
+
+  <div *ngSwitchCase="'error'" class="notice notice-error" role="alert" data-testid="detail-error">
+    <p>{{ state.kind === 'error' ? state.message : '' }}</p>
+    <button type="button" class="btn" (click)="load()" data-testid="detail-retry">Try again</button>
+  </div>
+
+  <ng-container *ngSwitchCase="'loaded'">
+    <article *ngIf="vm as vm" class="detail">
+      <header class="detail-head">
+        <p class="ref">{{ vm.cr.id }} on {{ vm.cr.agreementId }}</p>
+        <div class="title-row">
+          <h1 data-testid="detail-title">{{ vm.cr.title }}</h1>
+          <app-status-badge [status]="vm.cr.status" />
+        </div>
+        <p class="meta">
+          <ng-container *ngIf="vm.requester">Created by {{ vm.requester }}, </ng-container>
+          last updated {{ vm.cr.updatedAt | date: 'd MMM y' }}
+        </p>
+      </header>
+
+      <div class="layout">
+        <section class="panel changes" aria-labelledby="changes-title">
+          <h2 id="changes-title">Proposed changes</h2>
+          <app-diff-table [rows]="vm.diff" [totals]="vm.totals" [currency]="vm.cr.currency" />
+        </section>
+
+        <aside class="side">
+          <section class="panel decision" aria-labelledby="decision-title" data-testid="decision">
+            <h2 id="decision-title">Your decision</h2>
+
+            <div
+              *ngIf="action.kind === 'succeeded'"
+              class="notice notice-success"
+              role="status"
+              data-testid="action-success"
+            >
+              You {{ action.action === 'approve' ? 'approved' : 'rejected' }} this change request.
+            </div>
+
+            <div
+              *ngIf="actionError"
+              class="notice notice-error"
+              role="alert"
+              data-testid="action-error"
+            >
+              {{ actionError }}
+            </div>
+
+            <ng-container *ngIf="availability as a">
+              <p *ngIf="blockedReason" class="blocked" data-testid="action-blocked">
+                {{ blockedReason }}
+              </p>
+
+              <ng-container *ngIf="a.canAct">
+                <div *ngIf="!rejectOpen" class="actions">
+                  <button
+                    type="button"
+                    class="btn btn-approve"
+                    data-testid="approve"
+                    [disabled]="isSubmitting"
+                    [attr.aria-busy]="submittingAction('approve')"
+                    (click)="approve()"
+                  >
+                    <span
+                      *ngIf="submittingAction('approve')"
+                      class="spinner"
+                      aria-hidden="true"
+                    ></span>
+                    {{ submittingAction('approve') ? 'Approving' : 'Approve' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-reject"
+                    data-testid="reject"
+                    [disabled]="isSubmitting"
+                    (click)="openReject()"
+                  >
+                    Reject
+                  </button>
+                </div>
+
+                <form
+                  *ngIf="rejectOpen"
+                  class="reject-form"
+                  [formGroup]="rejectForm"
+                  (ngSubmit)="confirmReject()"
+                  data-testid="reject-form"
+                  novalidate
+                >
+                  <label for="reject-reason">Reason for rejecting</label>
+                  <p class="hint" id="reject-hint">
+                    The requester sees this and uses it to revise the request.
+                  </p>
+                  <textarea
+                    #reasonInput
+                    id="reject-reason"
+                    rows="4"
+                    formControlName="reason"
+                    [attr.aria-invalid]="!!reasonError"
+                    [attr.aria-describedby]="
+                      reasonError ? 'reject-hint reject-error' : 'reject-hint'
+                    "
+                    data-testid="reject-reason"
+                  ></textarea>
+                  <div class="reason-foot">
+                    <p
+                      *ngIf="reasonError"
+                      id="reject-error"
+                      class="field-error"
+                      data-testid="reject-reason-error"
+                    >
+                      {{ reasonError }}
+                    </p>
+                    <span class="count">{{ reason.value.length }} / {{ reasonMax }}</span>
+                  </div>
+                  <div class="actions">
+                    <button
+                      type="submit"
+                      class="btn btn-reject-solid"
+                      data-testid="confirm-reject"
+                      [disabled]="isSubmitting"
+                      [attr.aria-busy]="submittingAction('reject')"
+                    >
+                      <span
+                        *ngIf="submittingAction('reject')"
+                        class="spinner"
+                        aria-hidden="true"
+                      ></span>
+                      {{ submittingAction('reject') ? 'Rejecting' : 'Reject change request' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="btn"
+                      data-testid="cancel-reject"
+                      [disabled]="isSubmitting"
+                      (click)="cancelReject()"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </ng-container>
+            </ng-container>
+          </section>
+
+          <section class="panel history" aria-labelledby="history-title">
+            <h2 id="history-title">History</h2>
+            <app-timeline [events]="vm.timeline" />
+          </section>
+        </aside>
+      </div>
+    </article>
+  </ng-container>
+</ng-container>
