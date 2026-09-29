@@ -33,7 +33,7 @@
     </div>
 
     <div *ngSwitchCase="'error'" class="notice notice-error" role="alert" data-testid="list-error">
-      <p>{{ state.kind === 'error' ? state.message : '' }}</p>
+      <p>{{ loadError }}</p>
       <button type="button" class="btn" (click)="load()" data-testid="list-retry">Try again</button>
     </div>
 
@@ -81,9 +81,13 @@
               </td>
               <td class="nowrap">{{ row.updatedAt | date: 'd MMM y' }}</td>
               <td class="num" [class.up]="row.delta > 0" [class.down]="row.delta < 0">
-                {{ row.delta | money: row.currency : true }}
+                {{ row.delta > 0 ? '+' : '' }}{{ row.delta | currency: 'USD' }}
               </td>
-              <td><app-status-badge [status]="row.status" /></td>
+              <td>
+                <span class="badge" [attr.data-status]="row.status" data-testid="status-badge">
+                  {{ labelFor(row.status) }}
+                </span>
+              </td>
             </tr>
           </tbody>
         </table>

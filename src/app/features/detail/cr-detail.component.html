@@ -7,7 +7,7 @@
   </div>
 
   <div *ngSwitchCase="'error'" class="notice notice-error" role="alert" data-testid="detail-error">
-    <p>{{ state.kind === 'error' ? state.message : '' }}</p>
+    <p>{{ loadError }}</p>
     <button type="button" class="btn" (click)="load()" data-testid="detail-retry">Try again</button>
   </div>
 
@@ -17,7 +17,9 @@
         <p class="ref">{{ vm.cr.id }} on {{ vm.cr.agreementId }}</p>
         <div class="title-row">
           <h1 data-testid="detail-title">{{ vm.cr.title }}</h1>
-          <app-status-badge [status]="vm.cr.status" />
+          <span class="badge" [attr.data-status]="vm.cr.status" data-testid="status-badge">
+            {{ statusLabel(vm.cr.status) }}
+          </span>
         </div>
         <p class="meta">
           <ng-container *ngIf="vm.requester">Created by {{ vm.requester }}, </ng-container>
@@ -28,7 +30,7 @@
       <div class="layout">
         <section class="panel changes" aria-labelledby="changes-title">
           <h2 id="changes-title">Proposed changes</h2>
-          <app-diff-table [rows]="vm.diff" [totals]="vm.totals" [currency]="vm.cr.currency" />
+          <app-diff-table [rows]="vm.diff" [totals]="vm.totals"></app-diff-table>
         </section>
 
         <aside class="side">
@@ -36,12 +38,12 @@
             <h2 id="decision-title">Your decision</h2>
 
             <div
-              *ngIf="action.kind === 'succeeded'"
+              *ngIf="successMessage"
               class="notice notice-success"
               role="status"
               data-testid="action-success"
             >
-              You {{ action.action === 'approve' ? 'approved' : 'rejected' }} this change request.
+              {{ successMessage }}
             </div>
 
             <div
@@ -152,7 +154,7 @@
 
           <section class="panel history" aria-labelledby="history-title">
             <h2 id="history-title">History</h2>
-            <app-timeline [events]="vm.timeline" />
+            <app-timeline [events]="vm.timeline"></app-timeline>
           </section>
         </aside>
       </div>

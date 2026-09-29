@@ -1,0 +1,22 @@
+<header class="shell-header">
+  <a routerLink="/change-requests" class="brand">
+    <!-- <span class="brand-mark" aria-hidden="true"></span> -->
+    <span>penny <span class="brand-sub">Change requests</span></span>
+  </a>
+  <label class="who" *ngIf="userService.user$ | async as user">
+    <span class="visually-hidden">Signed in as</span>
+    <select
+      [ngModel]="user.id"
+      (ngModelChange)="userService.switchTo($event)"
+      aria-label="Signed in as"
+    >
+      <option *ngFor="let u of userService.users" [value]="u.id">
+        {{ u.id }} ({{ u.orgCode }}, {{ roleOf(u) }})
+      </option>
+    </select>
+  </label>
+</header>
+
+<main class="shell-main">
+  <router-outlet />
+</main>

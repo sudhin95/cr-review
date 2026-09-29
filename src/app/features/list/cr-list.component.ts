@@ -1,4 +1,4 @@
-import { DatePipe, NgFor, NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
+import { CurrencyPipe, DatePipe, NgFor, NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
 import { Component, DestroyRef, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -7,8 +7,6 @@ import { toUserMessage } from '../../core/api-error';
 import { CrApiService } from '../../core/cr-api.service';
 import { CurrentUserService } from '../../core/current-user.service';
 import { statusLabel } from '../../core/permissions';
-import { MoneyPipe } from '../../shared/money.pipe';
-import { StatusBadgeComponent } from '../../shared/status-badge.component';
 
 export type ListState =
   | { kind: 'loading' }
@@ -28,8 +26,7 @@ export const CR_STATUSES = ['PENDING_APPROVAL', 'DRAFT', 'APPROVED', 'REJECTED',
     FormsModule,
     RouterLink,
     DatePipe,
-    MoneyPipe,
-    StatusBadgeComponent,
+    CurrencyPipe,
   ],
   templateUrl: './cr-list.component.html',
   styleUrls: ['./cr-list.component.css'],
@@ -59,9 +56,14 @@ export class CrListComponent implements OnInit {
 
   /** Rows after the status filter. Empty unless data has loaded. */
   get visibleRows(): any[] {
+    console.log('visibleRows called');
     if (this.state.kind !== 'loaded') return [];
     const filter = this.statusFilter;
     return filter === 'ALL' ? this.state.rows : this.state.rows.filter((r) => r.status === filter);
+  }
+
+  get loadError(): string {
+    return this.state.kind === 'error' ? this.state.message : '';
   }
 
   get hasAnyRows(): boolean {
@@ -84,11 +86,14 @@ export class CrListComponent implements OnInit {
   }
 
   load(): void {
+    console.log('load called');
     const seq = ++this.loadSeq;
+    console.log('load seq', seq);
     this.state = { kind: 'loading' };
     this.api.listChangeRequests(this.users.user).then(
       (rows) => {
         if (this.isCurrent(seq)) this.state = { kind: 'loaded', rows };
+        console.log("this.state after load", this.state);
       },
       (err: unknown) => {
         if (!this.isCurrent(seq)) return;
@@ -105,6 +110,7 @@ export class CrListComponent implements OnInit {
   }
 
   private isCurrent(seq: number): boolean {
+    console.log('isCurrent called', seq, 'vs', this.loadSeq, 'destroyed:', this.destroyed);
     return !this.destroyed && seq === this.loadSeq;
   }
 }

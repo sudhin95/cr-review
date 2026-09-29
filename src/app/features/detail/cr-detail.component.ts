@@ -14,10 +14,13 @@ import { toUserMessage } from '../../core/api-error';
 import { CrApiService } from '../../core/cr-api.service';
 import { CurrentUserService } from '../../core/current-user.service';
 import { DiffRow, DiffTotals, buildDiff, diffTotals } from '../../core/diff';
-import { ActionAvailability, actionAvailability, requesterOf } from '../../core/permissions';
+import {
+  ActionAvailability,
+  actionAvailability,
+  requesterOf,
+  statusLabel,
+} from '../../core/permissions';
 import { sortTimeline } from '../../core/timeline';
-import { MoneyPipe } from '../../shared/money.pipe';
-import { StatusBadgeComponent } from '../../shared/status-badge.component';
 import { DiffTableComponent } from './diff-table.component';
 import { TimelineComponent } from './timeline.component';
 
@@ -59,8 +62,6 @@ function notBlank(control: AbstractControl<string>) {
     RouterLink,
     ReactiveFormsModule,
     DatePipe,
-    MoneyPipe,
-    StatusBadgeComponent,
     DiffTableComponent,
     TimelineComponent,
   ],
@@ -75,6 +76,7 @@ export class CrDetailComponent implements OnInit {
   rejectOpen = false;
   rejectAttempted = false;
   readonly reasonMax = REASON_MAX;
+  readonly statusLabel = statusLabel;
   readonly reason = new FormControl('', {
     nonNullable: true,
     validators: [Validators.required, notBlank, Validators.maxLength(REASON_MAX)],
@@ -134,6 +136,16 @@ export class CrDetailComponent implements OnInit {
     return this.action.kind === 'submitting' && this.action.action === action;
   }
 
+  get loadError(): string {
+    return this.state.kind === 'error' ? this.state.message : '';
+  }
+
+  get successMessage(): string | null {
+    if (this.action.kind !== 'succeeded') return null;
+    const verb = this.action.action === 'approve' ? 'approved' : 'rejected';
+    return `You ${verb} this change request.`;
+  }
+
   get actionError(): string | null {
     return this.action.kind === 'failed' ? this.action.message : null;
   }
@@ -175,7 +187,7 @@ export class CrDetailComponent implements OnInit {
     if (!this.canStart()) return;
     this.rejectOpen = true;
     if (this.action.kind === 'failed') this.action = { kind: 'idle' };
-    queueMicrotask(() => this.reasonInput?.nativeElement.focus());
+    // queueMicrotask(() => this.reasonInput?.nativeElement.focus());
   }
 
   cancelReject(): void {

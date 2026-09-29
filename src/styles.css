@@ -125,6 +125,39 @@ textarea {
   border-color: var(--ink-soft);
 }
 
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.15em 0.6em 0.15em 0.5em;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--surface);
+  color: var(--ink);
+}
+.badge::before {
+  content: '';
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  background: currentColor;
+}
+.badge[data-status='PENDING_APPROVAL'] {
+  background: var(--amber-soft);
+  color: var(--amber-ink);
+}
+.badge[data-status='APPROVED'],
+.badge[data-status='APPLIED'] {
+  background: var(--teal-soft);
+  color: var(--teal);
+}
+.badge[data-status='REJECTED'] {
+  background: var(--crimson-soft);
+  color: var(--crimson);
+}
+
 .spinner {
   width: 1rem;
   height: 1rem;

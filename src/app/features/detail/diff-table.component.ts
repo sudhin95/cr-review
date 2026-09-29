@@ -1,7 +1,6 @@
-import { NgFor, NgIf, PercentPipe } from '@angular/common';
+import { CurrencyPipe, NgFor, NgIf, PercentPipe } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { ChangeKind, DiffRow, DiffTotals } from '../../core/diff';
-import { MoneyPipe } from '../../shared/money.pipe';
 
 const KIND_LABEL: Record<ChangeKind, string> = {
   added: 'Added',
@@ -13,7 +12,7 @@ const KIND_LABEL: Record<ChangeKind, string> = {
 @Component({
   selector: 'app-diff-table',
   standalone: true,
-  imports: [NgFor, NgIf, MoneyPipe, PercentPipe],
+  imports: [NgFor, NgIf, CurrencyPipe, PercentPipe],
   template: `
     <div class="table-wrap">
       <table data-testid="diff-table">
@@ -48,18 +47,15 @@ const KIND_LABEL: Record<ChangeKind, string> = {
             </td>
             <td class="num">
               <ng-container *ngIf="showsChange(row, 'unitPrice'); else plainPrice">
-                <s>{{ row.before?.unitPrice | money: currency }}</s>
-                {{ row.after?.unitPrice | money: currency }}
+                <s>{{ row.before?.unitPrice | currency: 'USD' }}</s>
+                {{ row.after?.unitPrice | currency: 'USD' }}
               </ng-container>
               <ng-template #plainPrice>{{
-                (row.after ?? row.before)?.unitPrice | money: currency
+                (row.after ?? row.before)?.unitPrice | currency: 'USD'
               }}</ng-template>
             </td>
             <td class="num">
-              {{
-                (row.kind === 'removed' ? row.beforeTotal : row.afterTotal)
-                  | money: currency
-              }}
+              {{ (row.kind === 'removed' ? row.beforeTotal : row.afterTotal) | currency: 'USD' }}
             </td>
             <td
               class="num delta"
@@ -67,7 +63,10 @@ const KIND_LABEL: Record<ChangeKind, string> = {
               [class.down]="row.delta < 0"
               data-testid="diff-delta"
             >
-              {{ row.delta === 0 ? '—' : (row.delta | money: currency : true) }}
+              <ng-container *ngIf="row.delta !== 0; else noDelta">
+                {{ row.delta > 0 ? '+' : '' }}{{ row.delta | currency: 'USD' }}
+              </ng-container>
+              <ng-template #noDelta>—</ng-template>
             </td>
           </tr>
         </tbody>
@@ -77,16 +76,18 @@ const KIND_LABEL: Record<ChangeKind, string> = {
     <dl class="totals" data-testid="diff-totals">
       <div>
         <dt>Current total</dt>
-        <dd data-testid="total-before">{{ totals.before | money: currency }}</dd>
+        <dd data-testid="total-before">{{ totals.before | currency: 'USD' }}</dd>
       </div>
       <div>
         <dt>Proposed total</dt>
-        <dd data-testid="total-after">{{ totals.after | money: currency }}</dd>
+        <dd data-testid="total-after">{{ totals.after | currency: 'USD' }}</dd>
       </div>
       <div class="total-delta" [class.up]="totals.delta > 0" [class.down]="totals.delta < 0">
         <dt>Difference</dt>
         <dd>
-          <span data-testid="total-delta">{{ totals.delta | money: currency : true }}</span>
+          <span data-testid="total-delta"
+            >{{ totals.delta > 0 ? '+' : '' }}{{ totals.delta | currency: 'USD' }}</span
+          >
           <span class="pct" *ngIf="totals.deltaPercent !== null" data-testid="total-delta-pct">
             {{ totals.deltaPercent > 0 ? '+' : ''
             }}{{ totals.deltaPercent / 100 | percent: '1.0-1' }}
@@ -210,8 +211,6 @@ const KIND_LABEL: Record<ChangeKind, string> = {
 export class DiffTableComponent {
   @Input({ required: true }) rows!: DiffRow[];
   @Input({ required: true }) totals!: DiffTotals;
-  @Input() currency = 'USD';
-
   kindLabel(kind: ChangeKind): string {
     return KIND_LABEL[kind];
   }
