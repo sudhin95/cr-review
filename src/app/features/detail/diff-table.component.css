@@ -1,0 +1,107 @@
+.table-wrap {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 40rem;
+}
+th,
+td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+th {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.num {
+  text-align: right;
+  white-space: nowrap;
+}
+tbody tr {
+  box-shadow: inset 4px 0 0 transparent;
+}
+tr[data-kind='added'] {
+  box-shadow: inset 4px 0 0 var(--teal);
+  background: #f5fbfa;
+}
+tr[data-kind='removed'] {
+  box-shadow: inset 4px 0 0 var(--crimson);
+  background: #fdf6f8;
+}
+tr[data-kind='modified'] {
+  box-shadow: inset 4px 0 0 var(--amber);
+}
+tr[data-kind='unchanged'] {
+  color: var(--ink-soft);
+}
+tr[data-kind='removed'] .desc {
+  text-decoration: line-through;
+}
+.kind {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+tr[data-kind='added'] .kind {
+  color: var(--teal);
+}
+tr[data-kind='removed'] .kind {
+  color: var(--crimson);
+}
+tr[data-kind='modified'] .kind {
+  color: var(--amber-ink);
+}
+.desc {
+  font-weight: 600;
+  color: var(--ink);
+}
+.sku {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+}
+s {
+  color: var(--ink-soft);
+  margin-right: 0.35rem;
+}
+.up {
+  color: var(--crimson);
+}
+.down {
+  color: var(--teal);
+}
+.delta {
+  font-weight: 600;
+}
+.totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  margin: 0;
+  border-top: 2px solid var(--ink);
+}
+.totals > div {
+  padding: 1rem;
+}
+dt {
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+}
+dd {
+  margin: 0.2rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.total-delta dd {
+  font-size: 1.75rem;
+  letter-spacing: -0.02em;
+}
+.pct {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-left: 0.4rem;
+}

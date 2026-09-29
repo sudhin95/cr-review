@@ -8,9 +8,12 @@ describe('actionAvailability', () => {
     expect(actionAvailability(pending, users['approver']).canAct).toBe(true);
   });
 
-  it.each(['DRAFT', 'APPROVED', 'REJECTED', 'APPLIED'])('blocks actions on %s requests', (status) => {
-    expect(actionAvailability({ ...pending, status }, users['approver']).canAct).toBe(false);
-  });
+  it.each(['DRAFT', 'APPROVED', 'REJECTED', 'APPLIED'])(
+    'blocks actions on %s requests',
+    (status) => {
+      expect(actionAvailability({ ...pending, status }, users['approver']).canAct).toBe(false);
+    },
+  );
 
   it('blocks read-only users even on pending requests', () => {
     expect(actionAvailability(pending, users['viewer'])).toEqual({

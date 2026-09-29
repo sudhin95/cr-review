@@ -36,6 +36,11 @@
     radial-gradient(circle at 75% 28%, var(--teal) 0 24%, transparent 25%),
     radial-gradient(circle at 62% 72%, var(--amber) 0 38%, transparent 39%);
 }
+.brand-logo {
+  display: block;
+  height: 1.5rem;
+  width: auto;
+}
 .who {
   flex: 0 1 auto;
   min-width: 0;

@@ -9,25 +9,14 @@ import { CurrentUserService } from '../../core/current-user.service';
 import { statusLabel } from '../../core/permissions';
 
 export type ListState =
-  | { kind: 'loading' }
-  | { kind: 'loaded'; rows: any[] }
-  | { kind: 'error'; message: string };
+  { kind: 'loading' } | { kind: 'loaded'; rows: any[] } | { kind: 'error'; message: string };
 
 export const CR_STATUSES = ['PENDING_APPROVAL', 'DRAFT', 'APPROVED', 'REJECTED', 'APPLIED'];
 
 @Component({
   selector: 'app-cr-list',
   standalone: true,
-  imports: [
-    NgIf,
-    NgFor,
-    NgSwitch,
-    NgSwitchCase,
-    FormsModule,
-    RouterLink,
-    DatePipe,
-    CurrencyPipe,
-  ],
+  imports: [NgIf, NgFor, NgSwitch, NgSwitchCase, FormsModule, RouterLink, DatePipe, CurrencyPipe],
   templateUrl: './cr-list.component.html',
   styleUrls: ['./cr-list.component.css'],
 })
@@ -56,7 +45,6 @@ export class CrListComponent implements OnInit {
 
   /** Rows after the status filter. Empty unless data has loaded. */
   get visibleRows(): any[] {
-    console.log('visibleRows called');
     if (this.state.kind !== 'loaded') return [];
     const filter = this.statusFilter;
     return filter === 'ALL' ? this.state.rows : this.state.rows.filter((r) => r.status === filter);
@@ -86,14 +74,11 @@ export class CrListComponent implements OnInit {
   }
 
   load(): void {
-    console.log('load called');
     const seq = ++this.loadSeq;
-    console.log('load seq', seq);
     this.state = { kind: 'loading' };
     this.api.listChangeRequests(this.users.user).then(
       (rows) => {
         if (this.isCurrent(seq)) this.state = { kind: 'loaded', rows };
-        console.log("this.state after load", this.state);
       },
       (err: unknown) => {
         if (!this.isCurrent(seq)) return;
@@ -110,7 +95,6 @@ export class CrListComponent implements OnInit {
   }
 
   private isCurrent(seq: number): boolean {
-    console.log('isCurrent called', seq, 'vs', this.loadSeq, 'destroyed:', this.destroyed);
     return !this.destroyed && seq === this.loadSeq;
   }
 }

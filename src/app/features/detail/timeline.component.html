@@ -1,0 +1,9 @@
+<ol class="timeline" data-testid="timeline">
+  <li *ngFor="let event of events" [attr.data-type]="event.action" data-testid="timeline-event">
+    <p class="line">
+      <strong>{{ event.byUserId }}</strong> {{ verb(event.action) }}
+    </p>
+    <time [attr.datetime]="event.at">{{ event.at | date: 'd MMM y, HH:mm' }}</time>
+    <p class="note" *ngIf="event.note">{{ event.note }}</p>
+  </li>
+</ol>

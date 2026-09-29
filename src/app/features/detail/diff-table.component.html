@@ -1,0 +1,80 @@
+<div class="table-wrap">
+  <table data-testid="diff-table">
+    <caption class="visually-hidden">
+      Proposed line item changes
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">Line item</th>
+        <th scope="col" class="num">Quantity</th>
+        <th scope="col" class="num">Unit price</th>
+        <th scope="col" class="num">Line total</th>
+        <th scope="col" class="num">Change</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        *ngFor="let row of rows; trackBy: trackBySku"
+        [attr.data-kind]="row.kind"
+        data-testid="diff-row"
+      >
+        <td>
+          <span class="kind" data-testid="diff-kind">{{ kindLabel(row.kind) }}</span>
+          <span class="desc">{{ row.description }}</span>
+          <span class="sku">{{ row.sku }}</span>
+        </td>
+        <td class="num">
+          <ng-container *ngIf="showsChange(row, 'quantity'); else plainQty">
+            <s>{{ row.before?.quantity }}</s> {{ row.after?.quantity }}
+          </ng-container>
+          <ng-template #plainQty>{{ (row.after ?? row.before)?.quantity }}</ng-template>
+        </td>
+        <td class="num">
+          <ng-container *ngIf="showsChange(row, 'unitPrice'); else plainPrice">
+            <s>{{ row.before?.unitPrice | currency: 'USD' }}</s>
+            {{ row.after?.unitPrice | currency: 'USD' }}
+          </ng-container>
+          <ng-template #plainPrice>{{
+            (row.after ?? row.before)?.unitPrice | currency: 'USD'
+          }}</ng-template>
+        </td>
+        <td class="num">
+          {{ (row.kind === 'removed' ? row.beforeTotal : row.afterTotal) | currency: 'USD' }}
+        </td>
+        <td
+          class="num delta"
+          [class.up]="row.delta > 0"
+          [class.down]="row.delta < 0"
+          data-testid="diff-delta"
+        >
+          <ng-container *ngIf="row.delta !== 0; else noDelta">
+            {{ row.delta > 0 ? '+' : '' }}{{ row.delta | currency: 'USD' }}
+          </ng-container>
+          <ng-template #noDelta>—</ng-template>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<dl class="totals" data-testid="diff-totals">
+  <div>
+    <dt>Current total</dt>
+    <dd data-testid="total-before">{{ totals.before | currency: 'USD' }}</dd>
+  </div>
+  <div>
+    <dt>Proposed total</dt>
+    <dd data-testid="total-after">{{ totals.after | currency: 'USD' }}</dd>
+  </div>
+  <div class="total-delta" [class.up]="totals.delta > 0" [class.down]="totals.delta < 0">
+    <dt>Difference</dt>
+    <dd>
+      <span data-testid="total-delta"
+        >{{ totals.delta > 0 ? '+' : '' }}{{ totals.delta | currency: 'USD' }}</span
+      >
+      <span class="pct" *ngIf="totals.deltaPercent !== null" data-testid="total-delta-pct">
+        {{ totals.deltaPercent > 0 ? '+' : '' }}{{ totals.deltaPercent / 100 | percent: '1.0-1' }}
+      </span>
+    </dd>
+  </div>
+</dl>

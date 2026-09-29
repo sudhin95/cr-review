@@ -32,7 +32,9 @@ export class CrApiService {
   }
 
   private fail<T>(message: string): Promise<T> {
-    return new Promise<T>((_, reject) => setTimeout(() => reject(new Error(message)), this.latencyMs));
+    return new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(message)), this.latencyMs),
+    );
   }
 
   listChangeRequests(user: any): Promise<any[]> {
@@ -41,7 +43,15 @@ export class CrApiService {
       .map((s) => {
         const d = this.detailStore[s.id];
         return d
-          ? { id: d.id, title: d.title, status: d.status, orgCode: d.orgCode, delta: d.delta, currency: d.currency, updatedAt: d.updatedAt }
+          ? {
+              id: d.id,
+              title: d.title,
+              status: d.status,
+              orgCode: d.orgCode,
+              delta: d.delta,
+              currency: d.currency,
+              updatedAt: d.updatedAt,
+            }
           : { ...s };
       });
     return this.settle(rows);
@@ -61,10 +71,22 @@ export class CrApiService {
     return this.transition(user, id, 'REJECTED', 'REJECT', at, reason);
   }
 
-  private transition(user: any, id: string, status: string, action: string, at: string, note?: string): Promise<any> {
+  private transition(
+    user: any,
+    id: string,
+    status: string,
+    action: string,
+    at: string,
+    note?: string,
+  ): Promise<any> {
     const cr = this.detailStore[id];
     if (!cr || cr.orgCode !== user.orgCode) return this.fail<any>('Not found');
-    const updated = { ...cr, status, updatedAt: at, audit: [...cr.audit, { action, byUserId: user.id, at, note }] };
+    const updated = {
+      ...cr,
+      status,
+      updatedAt: at,
+      audit: [...cr.audit, { action, byUserId: user.id, at, note }],
+    };
     this.detailStore[id] = updated;
     return this.settle({ ...updated });
   }

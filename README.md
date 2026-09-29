@@ -8,7 +8,7 @@ find a request, understand the proposed changes and history, then approve or rej
 ```bash
 npm ci
 npm start          # http://localhost:4200
-npm test           # Jest, 46 tests
+npm test           # Jest, 59 tests
 npm run build      # production build
 npm run format:check
 ```
