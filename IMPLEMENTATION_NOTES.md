@@ -1,65 +1,92 @@
 # Implementation notes
 
-## Screens and component state
+## How the screens hold state
 
-**List (`CrListComponent`)** holds one discriminated union, `ListState`:
-`loading | loaded(rows) | error(message)`, plus `statusFilter` (default `PENDING_APPROVAL`).
-`visibleRows` is a getter derived from both, so the table can never disagree with the filter.
-Two empty states are distinct: "no change requests yet" versus "nothing matches this status"
-(with a button to show all). Each load bumps a sequence number and older Promises are ignored,
-so a slow, stale response cannot overwrite a newer one. Switching user reloads, because
-`CrApiService` is org-scoped.
+**List page (`CrListComponent`)**
 
-**Detail (`CrDetailComponent`)** holds two independent unions:
+The list keeps a single `ListState`: `loading`, `loaded` (with rows) or `error` (with a message).
+Next to it is `statusFilter`, which starts on `PENDING_APPROVAL`. The rows you see come from the
+`visibleRows` getter, so the table always matches the selected filter.
 
-- `DetailState`: `loading | loaded(vm) | error(message)`. The view model (diff rows, totals,
-  sorted timeline) is computed once when a request arrives, not in the template.
-- `ActionState`: `idle | submitting(action) | failed(action, message) | succeeded(action)`.
+There are two different empty messages: one when there are no change requests at all, and one when
+nothing matches the chosen status (that one has a "show all" button).
 
-Keeping them separate means a failed approve never replaces the page with an error; the last
-known request stays on screen with an inline error and working buttons.
+Every load gets a sequence number. If an older request finishes after a newer one, its result is
+thrown away, so a slow response can't overwrite fresh data. Switching user reloads the list,
+because `CrApiService` only returns requests for the user's org.
 
-`DiffTableComponent` and `TimelineComponent` are presentational and receive computed data only.
+**Detail page (`CrDetailComponent`)**
 
-## Correctness decisions
+The detail page has two separate pieces of state:
 
-- **Diff classification** matches lines by SKU. Only in proposed means added, only in current
-  means removed, any field change (quantity, price, description) means changed. Proposed order is
-  kept and removed lines are appended.
-- **Money** amounts come from the fixtures in major units (`unitPrice`, `delta`) and are formatted
-  as such. The computed diff totals match each fixture's `baselineTotal` / `newTotal` / `delta`
-  (covered by a test).
-- **Timeline** sorts the `audit` trail by parsed instant (`Date.parse`), not by string or stored
-  order (fixtures store it newest first). Ties keep original order; unparseable dates go last.
-- **Action availability** (`actionAvailability`) requires `PENDING_APPROVAL` status, the same
-  org, the `cr_a_o` policy, and not being the creator (the `CREATE` audit entry). The template
-  renders buttons only when it passes, and `approve()` / `confirmReject()` re-check it, so a
-  read-only user cannot act even by calling the method. The mock service itself does not check
-  status or policy, so this client-side gate is the only guard in the demo.
-- **Duplicate actions**: buttons are disabled and the handler returns early while any action is in
-  flight.
-- **Reject** requires a non-blank reason (max 500), trimmed before sending. On failure the form
-  stays open with the reason preserved.
+- `DetailState`: `loading`, `loaded` (with a view model) or `error`. The view model (diff rows,
+  totals, sorted timeline) is built once when the data arrives, not recalculated in the template.
+- `ActionState`: `idle`, `submitting`, `failed` or `succeeded`, for approve/reject.
 
-## Testing strategy
+I kept these apart on purpose. If an approve fails, the page doesn't turn into an error screen.
+The request stays visible, the error shows inline, and the buttons still work.
 
-- Pure functions (`diff`, `timeline`, `permissions`) and `CrApiService` have unit tests.
-- Components are tested through the rendered DOM with `data-testid` hooks.
-- `FakeCrApi` returns a pending Promise per call, so each test decides when a response arrives or
-  fails. That makes the in-flight (slow) state directly assertable without timers.
-- `CrApiService.latencyMs` / `failNext` (part of the provided mock) are exercised in its spec.
+`DiffTableComponent` and `TimelineComponent` only display what they're given. They don't fetch or
+calculate anything themselves.
+
+## Decisions about correctness
+
+- **Diff:** line items are matched by SKU. A line only in the proposal is "added", a line only in
+  the current version is "removed", and a line where quantity, price or description changed is
+  "changed". The proposal's order is kept, and removed lines go at the end.
+- **Money:** the fixture amounts (`unitPrice`, `delta`) are already in whole currency units and
+  are shown as-is. A test checks that my calculated totals match each fixture's `baselineTotal`,
+  `newTotal` and `delta`.
+- **Timeline:** the fixtures store the audit trail newest first, so I sort by the actual time
+  (`Date.parse`), not by the text or the stored order. Events with the same time keep their
+  original order. Dates that can't be parsed go last.
+- **Who can approve or reject** (`actionAvailability`): the request has to be `PENDING_APPROVAL`,
+  in the user's org, the user needs the `cr_a_o` policy, and they can't be the person who created
+  it (taken from the `CREATE` audit entry). The buttons only show when this passes, and
+  `approve()` / `confirmReject()` check it again, so a read-only user can't act even by calling
+  the method directly. The mock service doesn't check status or policy, so in this demo the
+  client-side check is the only protection.
+- **Double clicks:** while an action is running, the buttons are disabled and the handler returns
+  straight away.
+- **Reject:** needs a reason that isn't blank, up to 500 characters, trimmed before sending. If the
+  reject fails, the form stays open and keeps the reason.
+
+## Testing
+
+- The pure functions (`diff`, `timeline`, `permissions`) and `CrApiService` have unit tests.
+- Components are tested through the rendered page, using `data-testid` attributes.
+- `FakeCrApi` returns a Promise that stays pending until the test resolves or rejects it. That lets
+  me check the "in progress" state directly, without fake timers.
+- The spec for `CrApiService` also covers `latencyMs` and `failNext`, which came with the provided
+  mock.
 
 ## Assumptions
 
-- Creators cannot approve their own change requests.
-- The list defaults to pending approval because that is the reviewer's work queue.
+- People can't approve their own change requests.
+- The list opens on "pending approval", because that's the reviewer's to-do list.
 
-## Tradeoffs and what I would do next
+## Tradeoffs and next steps
 
-- Filter is component state, not a URL query param; sharing a filtered link would need it.
-- No optimistic updates: the status changes only after the server confirms.
-- Next: keyboard shortcut for approve, pagination for long lists, e2e smoke test.
+- The filter lives in the component, not in the URL, so you can't share a link to a filtered
+  list yet.
+- No optimistic updates: the status only changes after the server confirms it.
+- Next I'd add a keyboard shortcut for approve, pagination for long lists, and an end-to-end
+  smoke test.
 
 ## AI usage
 
-_Fill in honestly: which parts you generated, what you changed, and how you verified it._
+The UI was done using AI: the component templates, the page layout and the CSS styling.
+
+I also used Claude Code (an AI coding assistant) for cleanup and pre-submission checks:
+
+- Moving inline templates and styles out of `AppComponent`, `TimelineComponent` and
+  `DiffTableComponent` into separate `.html` and `.css` files.
+- Working out why images in `src/assets` weren't loading (the `assets` list in `angular.json` was
+  empty, and one image path had the wrong capitalization).
+- Checking that `npm ci && npm test` works from a clean copy, and running the build, type check and
+  Prettier. That included removing leftover debug `console.log` calls, applying Prettier, and
+  updating the test count in the README.
+- Rewording these notes to make them easier to read.
+
+I reviewed every change, and I re-ran the tests, the build and the format check to confirm
+nothing broke.

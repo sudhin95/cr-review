@@ -33,7 +33,7 @@
           <app-diff-table [rows]="vm.diff" [totals]="vm.totals"></app-diff-table>
         </section>
 
-        <aside class="side">
+        <span class="side">
           <section class="panel decision" aria-labelledby="decision-title" data-testid="decision">
             <h2 id="decision-title">Your decision</h2>
 
@@ -54,12 +54,11 @@
             >
               {{ actionError }}
             </div>
-
             <ng-container *ngIf="availability as a">
+      
               <p *ngIf="blockedReason" class="blocked" data-testid="action-blocked">
                 {{ blockedReason }}
               </p>
-
               <ng-container *ngIf="a.canAct">
                 <div *ngIf="!rejectOpen" class="actions">
                   <button
@@ -156,7 +155,7 @@
             <h2 id="history-title">History</h2>
             <app-timeline [events]="vm.timeline"></app-timeline>
           </section>
-        </aside>
+        </span>
       </div>
     </article>
   </ng-container>

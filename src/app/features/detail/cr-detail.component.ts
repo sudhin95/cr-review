@@ -23,6 +23,7 @@ import {
 import { sortTimeline } from '../../core/timeline';
 import { DiffTableComponent } from './diff-table.component';
 import { TimelineComponent } from './timeline.component';
+import { JsonPipe } from '@angular/common';
 
 export type DetailState =
   | { kind: 'loading' }
@@ -46,6 +47,12 @@ export type ActionState =
   | { kind: 'failed'; action: DecisionAction; message: string }
   | { kind: 'succeeded'; action: DecisionAction };
 
+/** Plain data sent with an approve / reject. `reason` is only used for reject. */
+export interface DecisionRequest {
+  at: string;
+  reason?: string;
+}
+
 export const REASON_MAX = 500;
 
 function notBlank(control: AbstractControl<string>) {
@@ -64,6 +71,7 @@ function notBlank(control: AbstractControl<string>) {
     DatePipe,
     DiffTableComponent,
     TimelineComponent,
+    JsonPipe,
   ],
   templateUrl: './cr-detail.component.html',
   styleUrls: ['./cr-detail.component.css'],
@@ -180,7 +188,7 @@ export class CrDetailComponent implements OnInit {
 
   approve(): void {
     if (!this.canStart()) return;
-    this.submit('approve', () => this.api.approve(this.user, this.crId, new Date().toISOString()));
+    this.submit('approve', { at: new Date().toISOString() });
   }
 
   openReject(): void {
@@ -200,15 +208,14 @@ export class CrDetailComponent implements OnInit {
   confirmReject(): void {
     this.rejectAttempted = true;
     this.reason.markAsTouched();
+    console.log(this.reason.invalid);
     if (this.reason.invalid) {
       this.reasonInput?.nativeElement.focus();
       return;
     }
     if (!this.canStart()) return;
     const reason = this.reason.value.trim();
-    this.submit('reject', () =>
-      this.api.reject(this.user, this.crId, new Date().toISOString(), reason),
-    );
+    this.submit('reject', { at: new Date().toISOString(), reason });
   }
 
   /** Blocks invalid (status/policy) and duplicate (already in flight) actions. */
@@ -216,11 +223,15 @@ export class CrDetailComponent implements OnInit {
     return !this.isSubmitting && this.availability?.canAct === true;
   }
 
-  private submit(action: DecisionAction, request: () => Promise<any>): void {
+  private submit(action: DecisionAction, request: DecisionRequest): void {
     const seq = ++this.actionSeq;
     this.action = { kind: 'submitting', action };
     this.reason.disable({ emitEvent: false });
-    request().then(
+    const call =
+      action === 'approve'
+        ? this.api.approve(this.user, this.crId, request.at)
+        : this.api.reject(this.user, this.crId, request.at, request.reason ?? '');
+    call.then(
       (updated) => {
         if (!this.isCurrentAction(seq)) return;
         this.showCr(updated);
@@ -230,7 +241,7 @@ export class CrDetailComponent implements OnInit {
         this.reason.enable({ emitEvent: false });
         this.action = { kind: 'succeeded', action };
       },
-      (err: unknown) => {
+      (err: any) => {
         if (!this.isCurrentAction(seq)) return;
         // Keep the last known CR on screen; the server state did not change.
         this.reason.enable({ emitEvent: false });
@@ -263,6 +274,7 @@ export class CrDetailComponent implements OnInit {
         timeline: sortTimeline(cr.audit ?? []),
       },
     };
+    console.log('showCr', this.state);
   }
 
   private resetDecision(): void {
