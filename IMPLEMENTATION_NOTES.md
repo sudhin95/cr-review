@@ -65,17 +65,20 @@ calculate anything themselves.
 - People can't approve their own change requests.
 - The list opens on "pending approval", because that's the reviewer's to-do list.
 
-## Tradeoffs and next steps
-
-- The filter lives in the component, not in the URL, so you can't share a link to a filtered
-  list yet.
-- No optimistic updates: the status only changes after the server confirms it.
-- Next I'd add a keyboard shortcut for approve, pagination for long lists, and an end-to-end
-  smoke test.
 
 ## AI usage
 
-The UI was done using AI: the component templates, the page layout and the CSS styling.
+The UI and the tests were made with AI.
+
+**UI:** the component templates, the page layout and the CSS styling were generated with AI.
+
+**Tests:** the specs were written with AI:
+
+- Unit tests for the pure functions (`diff.spec.ts`, `timeline.spec.ts`, `permissions.spec.ts`)
+  and for `CrApiService` (`cr-api.service.spec.ts`).
+- Component tests for the list and detail pages (`cr-list.component.spec.ts`,
+  `cr-detail.component.spec.ts`).
+- The test helpers in `src/testing` (`FakeCrApi` and the DOM helpers).
 
 I also used Claude Code (an AI coding assistant) for cleanup and pre-submission checks:
 
