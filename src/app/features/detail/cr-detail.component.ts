@@ -69,7 +69,7 @@ function notBlank(control: AbstractControl<string>) {
     DatePipe,
     DiffTableComponent,
     TimelineComponent,
-    JsonPipe,
+   
   ],
   templateUrl: './cr-detail.component.html',
   styleUrls: ['./cr-detail.component.css'],
