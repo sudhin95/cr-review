@@ -52,9 +52,7 @@ export interface DecisionRequest {
   at: string;
   reason?: string;
 }
-
 export const REASON_MAX = 500;
-
 function notBlank(control: AbstractControl<string>) {
   return control.value.trim().length ? null : { blank: true };
 }
